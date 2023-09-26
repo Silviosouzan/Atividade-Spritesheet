@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boneco em Canvas</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="meu_canvas"></canvas>
+
+    <script>
+        var canvas = document.getElementById('meu_canvas');
+        var context = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        var BONECO_BAIXO = 1;
+        var BONECO_ESQUERDA = 2;
+        var BONECO_DIREITA = 3;
+        var BONECO_CIMA = 4;
+
+        var pausado = false;
+        var direcaoAnimacao = BONECO_BAIXO;
+        var frameAtual = 0;
+
+        var spritesheet = new Image();
+        spritesheet.src = './assets/Spritesheet.png';
+
+        function Boneco(imagem) {
+            this.x = canvas.width / 2;
+            this.y = canvas.height / 2;
+            this.largura = 130;
+            this.altura = 130;
+            this.velocidade = 1;
+            this.andando = false;
+            this.direcao = null;
+            this.imagem = imagem;
+        }
+
+        Boneco.prototype.atualizar = function () {
+            if (!pausado) {
+                if (this.direcao === BONECO_BAIXO) {
+                    direcaoAnimacao = BONECO_BAIXO;
+                    this.y += this.velocidade;
+                } else if (this.direcao === BONECO_ESQUERDA) {
+                    direcaoAnimacao = BONECO_ESQUERDA;
+                    this.x -= this.velocidade;
+                } else if (this.direcao === BONECO_DIREITA) {
+                    direcaoAnimacao = BONECO_DIREITA;
+                    this.x += this.velocidade;
+                } else if (this.direcao === BONECO_CIMA) {
+                    direcaoAnimacao = BONECO_CIMA;
+                    this.y -= this.velocidade;
+                }
+            }
+        };
+
+        Boneco.prototype.desenhar = function () {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            var larguraQuadro = this.imagem.width / 5;
+            var alturaQuadro = this.imagem.height / 4;
+
+            context.drawImage(
+                this.imagem,
+                frameAtual * larguraQuadro,
+                (direcaoAnimacao - 1) * alturaQuadro,
+                larguraQuadro,
+                alturaQuadro,
+                this.x,
+                this.y,
+                this.largura,
+                this.altura
+            );
+
+            frameAtual = (frameAtual + 1) % 5;
+        };
+
+        Boneco.prototype.moverBaixo = function () {
+            this.direcao = BONECO_BAIXO;
+        };
+
+        Boneco.prototype.moverEsquerda = function () {
+            this.direcao = BONECO_ESQUERDA;
+        };
+
+        Boneco.prototype.moverDireita = function () {
+            this.direcao = BONECO_DIREITA;
+        };
+
+        Boneco.prototype.moverCima = function () {
+            this.direcao = BONECO_CIMA;
+        };
+
+        Boneco.prototype.pausar = function () {
+            pausado = true;
+        };
+
+        Boneco.prototype.retomar = function () {
+            pausado = false;
+        };
+
+        Boneco.prototype.togglePausar = function () {
+            pausado = !pausado;
+        };
+
+        var boneco = new Boneco(spritesheet);
+
+        function ajustarTamanhoDoCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        ajustarTamanhoDoCanvas();
+        window.addEventListener('resize', ajustarTamanhoDoCanvas);
+
+        function loop() {
+            boneco.atualizar();
+            boneco.desenhar();
+
+            requestAnimationFrame(loop);
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowDown') {
+                boneco.moverBaixo();
+            } else if (event.key === 'ArrowLeft') {
+                boneco.moverEsquerda();
+            } else if (event.key === 'ArrowRight') {
+                boneco.moverDireita();
+            } else if (event.key === 'ArrowUp') {
+                boneco.moverCima();
+            } else if (event.key === ' ') {
+                boneco.togglePausar();
+            }
+        });
+
+        loop();
+    </script>
+</body>
+</html>
+
